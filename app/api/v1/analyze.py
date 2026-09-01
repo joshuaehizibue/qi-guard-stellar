@@ -1,8 +1,9 @@
 """
 Contract Risk and Behavioral Anomaly analysis API endpoints.
+Connected to live Classical PyTorch MLP, PennyLane Quantum Circuit, Behavioral Anomaly, and Model Registry engines.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 import datetime
@@ -27,6 +28,10 @@ from app.schemas import (
 from app.services.wasm_parser import wasm_disassembler
 from app.services.horizon import horizon_client
 from app.services.soroban import soroban_rpc_client
+from app.services.classical_engine import classical_engine
+from app.services.quantum_engine import quantum_engine
+from app.services.behavioral_engine import behavioral_engine
+from app.services.model_registry import model_registry
 from app.models.job import Job, JobType, JobStatus
 from app.models.contract import Contract
 from app.models.finding import Finding, Severity
@@ -52,7 +57,7 @@ async def analyze_contract(
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Monthly contract analysis limit exceeded for {auth.project.tier.value} tier ({limit} max). Upgrade to Builder or Protocol tier."
+            detail=f"Monthly contract analysis limit exceeded for {auth.project.tier.value} tier ({limit} max)."
         )
 
     start_time = time.time()
@@ -60,7 +65,6 @@ async def analyze_contract(
 
     if request.wasm_byte_code:
         try:
-            # Handle hex or base64
             if request.wasm_byte_code.startswith("0x"):
                 wasm_bytes = bytes.fromhex(request.wasm_byte_code[2:])
             else:
@@ -74,31 +78,25 @@ async def analyze_contract(
     elif request.contract_address:
         wasm_bytes = await soroban_rpc_client.get_contract_wasm(request.contract_address)
         if not wasm_bytes:
-            # Generate deterministic sample WASM bytes if contract WASM not found on testnet
             wasm_bytes = b"\x00asm\x01\x00\x00\x00\x01\x04\x01\x60\x00\x00\x02\x0a\x01\x03env\x04auth\x00\x00\x07\x13\x01\x0etransfer_admin\x00\x00\x0a\x04\x01\x02\x00\x0b"
     else:
-        # Fallback default test binary
         wasm_bytes = b"\x00asm\x01\x00\x00\x00\x01\x04\x01\x60\x00\x00\x02\x0a\x01\x03env\x04auth\x00\x00\x07\x13\x01\x0etransfer_admin\x00\x00\x0a\x04\x01\x02\x00\x0b"
 
-    # Disassemble & Extract Static Features
-    try:
-        parser_res = wasm_disassembler.parse_bytecode(wasm_bytes)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"WASM parsing error: {str(e)}"
-        )
+    # 1. Disassemble & Extract Static Features
+    parsed_wasm = wasm_disassembler.parse_bytecode(wasm_bytes)
 
-    # Compute Classical vs. Hybrid scores
-    vuln_findings = parser_res.get("vulnerability_findings", [])
-    base_score = 30.0 + (len(vuln_findings) * 20.0)
-    classical_score = min(95.0, base_score)
-    # Quantum circuit feature enhancement delta
-    hybrid_score = min(99.0, classical_score + 7.0)
-    delta_score = round(hybrid_score - classical_score, 2)
+    # 2. Classical PyTorch MLP Encoding
+    feat_vec, latent_emb, classical_score = classical_engine.encode_wasm_features(parsed_wasm)
+
+    # 3. PennyLane Quantum Circuit Execution
+    hybrid_score, delta_score, exp_vals, q_config = quantum_engine.execute_hybrid_circuit(
+        latent_emb, classical_score
+    )
+
     latency_ms = round((time.time() - start_time) * 1000, 2)
+    model_meta = model_registry.get_model_metadata()
 
-    # Database Persistence
+    # 4. Database Persistence
     wasm_hash = hashlib.sha256(wasm_bytes).hexdigest()
     contract = Contract(
         contract_address=request.contract_address,
@@ -121,11 +119,13 @@ async def analyze_contract(
         delta_score=delta_score,
         classical_latency_ms=latency_ms,
         hybrid_latency_ms=latency_ms + 76.0,
-        quantum_config={"n_qubits": 8, "circuit_depth": 4, "gate_set": ["RX", "RY", "CZ"]},
+        model_version=model_meta["model_id"],
+        quantum_config=q_config,
     )
     db.add(job)
 
-    # Format Findings
+    # 5. Format Findings
+    vuln_findings = parsed_wasm.get("vulnerability_findings", [])
     response_findings = []
     for f in vuln_findings:
         finding_obj = Finding(
@@ -147,7 +147,7 @@ async def analyze_contract(
                 severity=f["severity"],
                 evidence=f.get("evidence", []),
                 remediation=f.get("remediation"),
-                model_version="qi-guard-stellar-0.1.0",
+                model_version=model_meta["model_id"],
                 quantum_contribution=f.get("quantum_contribution", True)
             )
         )
@@ -182,7 +182,7 @@ async def analyze_contract(
     "/behavioral",
     response_model=BehavioralAnalysisResponse,
     summary="Analyze Stellar Behavioral Anomaly",
-    description="Analyzes transaction activity for a Stellar account or contract address to flag temporal anomalies and rapid drain patterns."
+    description="Analyzes transaction activity for a Stellar account or contract address using Isolation Forests and variational quantum circuits."
 )
 async def analyze_behavioral(
     request: BehavioralAnalysisRequest,
@@ -201,17 +201,18 @@ async def analyze_behavioral(
 
     start_time = time.time()
     
-    # Query Horizon for transaction history
+    # Fetch transaction records from Horizon if not supplied
     tx_records = request.transactions
     if not tx_records:
         tx_records = await horizon_client.get_account_transactions(request.address, limit=20)
 
-    # Anomaly scoring logic based on transaction density and call velocity
-    record_count = len(tx_records)
-    classical_score = 0.73 if record_count > 0 else 0.15
-    hybrid_score = 0.81 if record_count > 0 else 0.18
-    delta = round(hybrid_score - classical_score, 2)
+    # 1. Behavioral Anomaly Engine Analysis
+    classical_score, hybrid_score, delta, patterns_raw, related = behavioral_engine.analyze_account_activity(
+        request.address, tx_records, request.analysis_window
+    )
+
     latency_ms = round((time.time() - start_time) * 1000, 2)
+    model_meta = model_registry.get_model_metadata()
 
     job_id = f"job_beh_{uuid.uuid4().hex[:8]}"
     job = Job(
@@ -225,22 +226,15 @@ async def analyze_behavioral(
         delta_score=delta,
         classical_latency_ms=latency_ms,
         hybrid_latency_ms=latency_ms + 45.0,
-        quantum_config={"n_qubits": 8, "circuit_depth": 4, "gate_set": ["RX", "RY", "CZ"]},
+        model_version=model_meta["model_id"],
+        quantum_config=model_meta["quantum_config"],
     )
     db.add(job)
     await db.commit()
 
     patterns = [
-        PatternDetail(
-            type="RAPID_DRAIN",
-            confidence=0.88,
-            evidence=["12 transfer operations in 4 minutes", "recipient addresses created within 1 hour"]
-        ),
-        PatternDetail(
-            type="UNUSUAL_INVOCATION",
-            confidence=0.77,
-            evidence=["non-standard function call order on liquidity pool contract"]
-        )
+        PatternDetail(type=p["type"], confidence=p["confidence"], evidence=p["evidence"])
+        for p in patterns_raw
     ]
 
     return BehavioralAnalysisResponse(
@@ -254,7 +248,7 @@ async def analyze_behavioral(
         ),
         risk_level="HIGH" if hybrid_score > 0.7 else "LOW",
         patterns=patterns,
-        related_addresses=["GDEF456789012UVW...", "GHIJ789012345RST..."],
-        model_version="qi-guard-stellar-0.1.0",
+        related_addresses=related,
+        model_version=model_meta["model_id"],
         timestamp=datetime.datetime.utcnow().isoformat() + "Z"
     )

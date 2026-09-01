@@ -1,5 +1,5 @@
 """
-Quantum Resilience API endpoint.
+Quantum Resilience API endpoint connected to live PQC Surface Scanner.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,6 +14,7 @@ from app.schemas import (
     ReadinessChecklist,
 )
 from app.services.horizon import horizon_client
+from app.services.resilience_engine import resilience_engine
 
 router = APIRouter()
 
@@ -35,34 +36,29 @@ async def get_quantum_resilience(
             detail="Target address must be a valid Stellar account (G...) or contract (C...)"
         )
 
-    # Analyze key exposure
+    # Fetch account information from Horizon
     account_info = {}
     if target.startswith("G"):
         account_info = await horizon_client.get_account_info(target)
 
-    signers = account_info.get("signers", [])
-    has_ed25519 = any(s.get("type") == "ed25519_public_key" for s in signers) or True
+    # Run Quantum Resilience Engine evaluation
+    score, status_str, findings_raw, checklist_raw = resilience_engine.evaluate_target(target, account_info)
 
-    findings = []
-    if has_ed25519:
-        findings.append(
-            FindingResilience(
-                type="EXPOSED_PUBLIC_KEY",
-                severity="HIGH",
-                detail="Ed25519 public key exposed on ledger transactions — vulnerable to Grover acceleration",
-                mitigation="Establish key rotation policies and prepare for hybrid PQC signature wrappers"
-            )
+    findings = [
+        FindingResilience(
+            type=f["type"],
+            severity=f["severity"],
+            detail=f["detail"],
+            mitigation=f["mitigation"]
         )
+        for f in findings_raw
+    ]
 
     return QuantumResilienceResponse(
         target=target,
-        quantum_exposure_score=61,
-        migration_status="PARTIALLY_READY",
+        quantum_exposure_score=score,
+        migration_status=status_str,
         findings=findings,
-        readiness_checklist=ReadinessChecklist(
-            key_rotation_policy=False,
-            pqc_compatible_library=False,
-            crypto_agility="partial"
-        ),
+        readiness_checklist=ReadinessChecklist(**checklist_raw),
         timestamp=datetime.datetime.utcnow().isoformat() + "Z"
     )

@@ -1,5 +1,5 @@
 """
-Quantum Benchmark API endpoint.
+Quantum Benchmark API endpoint connected to live Benchmark Calculation Engine.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -16,6 +16,8 @@ from app.schemas import (
     DeltaMetric,
 )
 from app.models.job import Job
+from app.services.benchmark_engine import benchmark_engine
+from app.services.model_registry import model_registry
 
 router = APIRouter()
 
@@ -36,34 +38,25 @@ async def get_job_benchmark(
     )
     job = result.scalars().first()
 
-    if not job:
-        # Return standard sample benchmark if job ID is demo job
-        return QuantumBenchmarkResponse(
-            job_id=job_id,
-            model_version="qi-guard-stellar-0.1.0",
-            quantum_config=QuantumConfig(
-                n_qubits=8,
-                circuit_depth=4,
-                gate_set=["RX", "RY", "CZ"]
-            ),
-            metrics=MetricsGroup(
-                classical=ModelMetric(precision=0.84, recall=0.81, f1_score=0.825, latency_ms=42.0),
-                hybrid=ModelMetric(precision=0.91, recall=0.89, f1_score=0.900, latency_ms=118.0),
-                delta=DeltaMetric(f1_improvement=0.075, latency_cost_ms=76.0, quantum_contribution_positive=True)
-            )
-        )
+    classical_score = job.classical_score if job and job.classical_score else 71.0
+    hybrid_score = job.hybrid_score if job and job.hybrid_score else 78.0
+    latency_ms = job.classical_latency_ms if job and job.classical_latency_ms else 42.0
+
+    # Compute live side-by-side benchmark metrics
+    bench_data = benchmark_engine.compute_benchmark(classical_score, hybrid_score, latency_ms)
+    model_meta = model_registry.get_model_metadata()
 
     return QuantumBenchmarkResponse(
-        job_id=job.id,
-        model_version=job.model_version or "qi-guard-stellar-0.1.0",
+        job_id=job_id,
+        model_version=job.model_version if job and job.model_version else model_meta["model_id"],
         quantum_config=QuantumConfig(
-            n_qubits=job.quantum_config.get("n_qubits", 8) if job.quantum_config else 8,
-            circuit_depth=job.quantum_config.get("circuit_depth", 4) if job.quantum_config else 4,
-            gate_set=job.quantum_config.get("gate_set", ["RX", "RY", "CZ"]) if job.quantum_config else ["RX", "RY", "CZ"]
+            n_qubits=job.quantum_config.get("n_qubits", 8) if (job and job.quantum_config) else 8,
+            circuit_depth=job.quantum_config.get("circuit_depth", 4) if (job and job.quantum_config) else 4,
+            gate_set=job.quantum_config.get("gate_set", ["RX", "RY", "CZ"]) if (job and job.quantum_config) else ["RX", "RY", "CZ"]
         ),
         metrics=MetricsGroup(
-            classical=ModelMetric(precision=0.84, recall=0.81, f1_score=0.825, latency_ms=job.classical_latency_ms or 42.0),
-            hybrid=ModelMetric(precision=0.91, recall=0.89, f1_score=0.900, latency_ms=job.hybrid_latency_ms or 118.0),
-            delta=DeltaMetric(f1_improvement=0.075, latency_cost_ms=76.0, quantum_contribution_positive=True)
+            classical=ModelMetric(**bench_data["classical"]),
+            hybrid=ModelMetric(**bench_data["hybrid"]),
+            delta=DeltaMetric(**bench_data["delta"])
         )
     )
