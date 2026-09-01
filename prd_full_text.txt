@@ -1,0 +1,475 @@
+
+QUANTUMINFRA.IO
+QI-Guard for Stellar
+Technical Product Requirements Document — MVP Edition
+Version 1.0  |  August 2026  |  quantuminfra.io
+Product:  QI-Guard — Stellar Edition
+Company:  QuantumInfra.io
+Status:  MVP Definition — Engineering Ready
+Target chain:  Stellar / Soroban
+Primary users:  Soroban smart-contract developers, protocol teams, auditors, DeFi builders
+Grant target:  Stellar Community Fund (SCF) Build Award — up to $150K XLM
+Grant target:  QAI Ventures Accelerator
+
+1. Executive Summary
+QI-Guard for Stellar is a quantum-enhanced blockchain security intelligence layer delivered as a developer SDK and REST API, purpose-built for the Soroban smart-contract ecosystem.
+Stellar's security tooling ecosystem already includes Scout (static analysis), Almanax (LLM-assisted vulnerability detection), Certora Sunbeam (formal verification of WASM bytecode), and the Soroban Security Portal (community audit database). QI-Guard does not compete with these tools. It sits in the gap they leave: continuous on-chain behavioral intelligence, cross-contract risk fusion, and quantum-enhanced anomaly detection — all served through a clean API that any developer can call with an API key in under five minutes.
+The product is modeled on QuantumInfra's existing model-serving infrastructure: developers authenticate with an API key, submit data, and receive structured intelligence. There is no quantum knowledge requirement on the user side. The quantum computation happens transparently inside the inference engine.
+The MVP is scoped to four capabilities:
+•Contract Risk API — analyze a Soroban contract's WASM bytecode and source for vulnerability patterns and architectural risks.
+•Behavioral Anomaly API — stream or batch-submit Stellar transaction data and receive anomaly scores per address and interaction cluster.
+•Quantum Resilience API — score a contract or wallet against known post-quantum threat vectors.
+•Quantum Benchmark — every API response includes a side-by-side classical vs. hybrid performance comparison.
+The go-to-market is SCF Build Award funding + QAI Ventures accelerator, targeting 100 developer API integrations within 6 months of launch.
+
+2. Market Context
+2.1 What already exists on Stellar
+Understanding the existing tooling is essential for differentiation:
+Tool
+What it does
+Scout
+Static analysis — detects common vulnerability patterns in Soroban Rust source code. CoinFabrik-maintained. Integrates with CI/CD.
+Almanax
+LLM-assisted vulnerability detection in smart contracts and conventional code. CI/CD integration.
+Certora Sunbeam
+Formal verification of deployed WASM bytecode (not just source). Developers write correctness properties; Sunbeam proves them.
+Soroban Security Portal
+Community-driven audit database maintained by Inferara. Historical vulnerability reports.
+OpenZeppelin Stellar
+Secure contract primitives: tokens, access control, vaults, RWAs.
+Soroban Audit Bank
+SDF-funded audit program for SCF-awarded projects. Pre-audit preparation required.
+
+2.2 The gap QI-Guard fills
+Every existing tool operates at the code level, pre-deployment or at point-in-time audit. None of them:
+•Monitor deployed contracts and addresses in real time for behavioral anomalies.
+•Fuse code-level risk with on-chain behavioral evidence into a unified risk score.
+•Apply quantum-enhanced feature representations to improve anomaly detection on sparse, high-dimensional blockchain data.
+•Provide a quantum resilience score for post-quantum migration readiness.
+•Serve all of this through a developer API with API-key authentication — callable from any language, any stack, any CI/CD pipeline.
+QI-Guard is the behavioral intelligence and quantum resilience layer. It makes the existing tools better by adding a dimension they cannot provide.
+
+3. Product Vision
+Build the security intelligence layer that makes Soroban developers ship faster and sleep better — by giving them a single API that understands what their contract is designed to do, what the network is actually doing, and whether their system is ready for the quantum era.
+3.1 Product positioning
+QI-Guard for Stellar is positioned as:
+"A quantum-enhanced security intelligence API for Soroban developers. Not a scanner. Not a chatbot. Infrastructure."
+3.2 The user experience in one sentence
+A Soroban developer installs the QI-Guard SDK, passes their API key, submits their contract WASM or a Stellar address, and gets a structured JSON risk report in seconds — with classical and quantum model scores side-by-side.
+
+4. Target Users
+4.1 Primary
+•Individual builders: Soroban smart-contract developers
+•Need fast pre-deployment risk checks without setting up complex tooling.
+•Want a CI/CD security gate that doesn't slow them down.
+•DeFi teams: Protocol development teams
+•Building DEXes, stablecoins, lending, payment infrastructure on Soroban.
+•Need continuous monitoring of deployed contracts and associated on-chain activity.
+•Auditors: Security teams and auditors
+•Need a behavioral intelligence layer to supplement code-level findings during audit.
+•Want quantum resilience scoring as part of their deliverable.
+•Infrastructure: Blockchain infrastructure providers
+•RPC providers, indexers, wallet infrastructure wanting to embed risk intelligence into their stack.
+4.2 Secondary
+•Web3 enterprises and fintech companies using Stellar for payments or tokenized assets.
+•Blockchain foundations and grant-funded research organizations.
+•Security researchers exploring quantum-enhanced detection methods.
+
+5. Product Modules — MVP Scope
+The MVP consists of four modules, each exposed as an independent API endpoint and bundled together in the SDK.
+Module 1 — Contract Risk API
+Input
+•Soroban contract WASM bytecode (binary upload or hex string).
+•Optional: Rust source code for deeper analysis.
+•Optional: contract address on Stellar Mainnet or Testnet for live context.
+Processing
+•Bytecode disassembly and structural analysis.
+•Vulnerability pattern matching against QI-Guard's Soroban vulnerability taxonomy.
+•Architectural risk detection: upgradeability patterns, access control structure, admin privilege exposure.
+•Dependency risk: known vulnerable library versions, unsafe external calls.
+•Classical ML model produces a base risk score.
+•Hybrid quantum-classical model produces an enhanced risk score.
+•Benchmark comparison is logged and included in the response.
+Output — Contract Risk Profile
+{
+  "contract_id": "CXXX...YYY",
+  "risk_score": { "classical": 71, "hybrid": 78, "delta": "+7" },
+  "severity": "HIGH",
+  "confidence": 0.91,
+  "findings": [
+    {
+      "id": "QIG-SCF-0041",
+      "type": "ACCESS_CONTROL",
+      "component": "transfer_admin()",
+      "severity": "HIGH",
+      "evidence": ["unrestricted caller", "missing auth check"],
+      "remediation": "Add require_auth() on the invoker address",
+      "model_version": "qi-guard-stellar-0.1.0",
+      "quantum_contribution": true
+    }
+  ],
+  "quantum_resilience": { "score": 38, "status": "NOT_READY" }
+}
+
+Module 2 — Behavioral Anomaly API
+Input
+•Stellar account address or contract address.
+•Optional: transaction batch (array of Stellar transaction objects).
+•Optional: time window (default: last 7 days).
+Processing
+•Ingest transaction history via Horizon API or direct submission.
+•Build temporal feature vectors: call frequency, value flows, interaction clusters, invocation patterns.
+•Classical baseline: isolation forest + gradient boosting for anomaly scoring.
+•Hybrid model: variational quantum circuit layer for feature transformation before classical classification head.
+•Benchmark both architectures; report delta.
+Output — Behavioral Risk Profile
+{
+  "address": "GABC...XYZ",
+  "analysis_window": "7d",
+  "anomaly_score": { "classical": 0.73, "hybrid": 0.81, "delta": "+0.08" },
+  "risk_level": "HIGH",
+  "patterns": [
+    { "type": "RAPID_DRAIN", "confidence": 0.88, "evidence": ["12 transfers in 4min", "all to new addresses"] },
+    { "type": "UNUSUAL_INVOCATION", "confidence": 0.77, "evidence": ["non-standard function call order"] }
+  ],
+  "related_addresses": ["GDEF...123", "GHIJ...456"],
+  "model_version": "qi-guard-stellar-0.1.0"
+}
+
+Module 3 — Quantum Resilience API
+Input
+•Stellar account address OR Soroban contract address OR WASM bytecode.
+•Optional: list of cryptographic libraries used.
+Processing
+•Detect signature algorithm in use (Ed25519, Secp256k1, Secp256r1/passkeys).
+•Identify exposed public key surfaces.
+•Scan contract for cryptographic primitive dependencies.
+•Assess migration readiness against NIST PQC standards (CRYSTALS-Dilithium, FALCON, SPHINCS+).
+•Score against known quantum attack vectors — Grover, Shor applicability.
+Output — Quantum Resilience Report
+{
+  "target": "GABC...XYZ",
+  "quantum_exposure_score": 61,
+  "migration_status": "PARTIALLY_READY",
+  "findings": [
+    {
+      "type": "EXPOSED_PUBLIC_KEY",
+      "severity": "HIGH",
+      "detail": "Ed25519 key exposed on 47 ledgers — vulnerable to Grover acceleration",
+      "mitigation": "Migrate to hash-based or lattice-based scheme when Stellar PQC support lands"
+    }
+  ],
+  "readiness_checklist": {
+    "key_rotation_policy": false,
+    "pqc_compatible_library": false,
+    "crypto_agility": "partial"
+  }
+}
+
+Module 4 — Quantum Benchmark
+Every API call automatically runs both classical and hybrid inference and records the comparison. The benchmark is returned inline in the response AND stored in the developer's dashboard.
+Key metrics tracked per call:
+Metric
+Description
+Precision
+True positives / (true positives + false positives)
+Recall
+True positives / (true positives + false negatives)
+F1 Score
+Harmonic mean of precision and recall
+Anomaly AUROC
+Area under ROC curve for anomaly detection tasks
+Latency (ms)
+End-to-end API response time — classical vs. hybrid
+Training cost
+Compute tokens consumed per training run
+Quantum delta
+Hybrid score minus classical score — positive = quantum contributes
+
+This benchmark is QI-Guard's core scientific moat. Over time, the accumulation of benchmark data across thousands of Soroban contracts and addresses creates a proprietary dataset that answers the question no other quantum security product currently answers: where does quantum computation actually improve blockchain intelligence, and by how much?
+
+6. Developer Experience
+6.1 Quickstart — 5 minutes to first result
+# 1. Install the SDK
+npm install @quantuminfra/qi-guard
+
+# 2. Set your API key
+export QI_GUARD_API_KEY=qig_live_xxxxxxxxxxxx
+
+# 3. Analyze a contract
+npx qi-guard analyze --wasm ./target/wasm32/release/my_contract.wasm
+
+# Response: structured JSON risk report in your terminal
+6.2 SDK — JavaScript / TypeScript
+import { QIGuard } from '@quantuminfra/qi-guard';
+
+const qg = new QIGuard({ apiKey: process.env.QI_GUARD_API_KEY });
+
+// Contract analysis
+const report = await qg.analyzeContract({
+  wasm: fs.readFileSync('./contract.wasm'),
+  source: fs.readFileSync('./src/lib.rs', 'utf8'),  // optional
+});
+
+// Behavioral anomaly
+const anomaly = await qg.analyzeAddress({
+  address: 'GABC...XYZ',
+  window: '7d',
+});
+
+// Quantum resilience
+const pq = await qg.quantumResilience({ address: 'GABC...XYZ' });
+
+console.log(report.risk_score);  // { classical: 71, hybrid: 78, delta: '+7' }
+6.3 SDK — Python
+from qi_guard import QIGuard
+
+qg = QIGuard(api_key=os.environ['QI_GUARD_API_KEY'])
+
+report = qg.analyze_contract(wasm_path='./contract.wasm')
+print(report['risk_score'])
+
+anomaly = qg.analyze_address(address='GABC...XYZ', window='7d')
+print(anomaly['anomaly_score'])
+6.4 CI/CD Integration — GitHub Actions
+name: QI-Guard Security Check
+on: [pull_request]
+jobs:
+  qi-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Soroban contract
+        run: stellar contract build
+      - name: Run QI-Guard analysis
+        uses: quantuminfra/qi-guard-action@v1
+        with:
+          api-key: ${{ secrets.QI_GUARD_API_KEY }}
+          wasm-path: target/wasm32v1-none/release/
+          fail-on-severity: HIGH
+6.5 REST API — core endpoints
+Endpoint
+Description
+POST /v1/contracts/analyze
+Analyze WASM bytecode + optional source. Returns Contract Risk Profile.
+POST /v1/addresses/analyze
+Behavioral anomaly analysis for a Stellar address.
+POST /v1/addresses/resilience
+Quantum resilience score for an address or contract.
+POST /v1/transactions/batch
+Batch submit transactions for behavioral analysis.
+GET  /v1/jobs/{job_id}
+Poll async job status.
+GET  /v1/findings/{finding_id}
+Retrieve a specific finding with full evidence.
+GET  /v1/projects/{project_id}
+Project overview: all contracts, addresses, findings.
+GET  /v1/models/benchmark
+Retrieve latest classical vs. hybrid benchmark report.
+GET  /v1/models/versions
+List available model versions with metadata.
+POST /v1/projects
+Create a new project (groups contracts + addresses for monitoring).
+POST /v1/alerts
+Configure real-time alert rules for a project.
+GET  /v1/usage
+API key usage, credits, and quota.
+
+7. System Architecture
+7.1 High-level overview
+QI-Guard for Stellar is a multi-service backend with a public API gateway, a quantum-classical ML inference layer, a Stellar data ingestion pipeline, and a model registry. All services are containerized and deployable on cloud infrastructure.
+┌─────────────────────────────────────────────────────┐
+│                  DEVELOPER SURFACE                  │
+│  SDK (JS/Python/Rust)  │  REST API  │  Dashboard    │
+└──────────────┬──────────────────────────────────────┘
+               │  HTTPS + API Key Auth
+┌──────────────▼──────────────────────────────────────┐
+│                  API GATEWAY                         │
+│  Rate limiting │ Auth │ Request routing │ Logging    │
+└──┬──────────┬──────────────────┬────────────────────┘
+   │          │                  │
+┌──▼──┐  ┌────▼────┐       ┌────▼─────┐
+│ Job │  │Analysis │       │Resilience│
+│Queue│  │ Service │       │ Service  │
+└──┬──┘  └────┬────┘       └────┬─────┘
+   │          │                  │
+┌──▼──────────▼──────────────────▼─────────────────────┐
+│              QUANTUM-CLASSICAL INFERENCE ENGINE        │
+│                                                        │
+│   ┌──────────────────────────────────────────────┐    │
+│   │            CLASSICAL PIPELINE                 │    │
+│   │  Feature Extraction → Classical Model → Score │    │
+│   └──────────────────────────────────────────────┘    │
+│                          │                             │
+│   ┌──────────────────────▼───────────────────────┐    │
+│   │            HYBRID PIPELINE                    │    │
+│   │  Feature Extraction → Classical Encoder        │    │
+│   │  → Quantum Circuit Layer (PennyLane)           │    │
+│   │  → Hybrid Representation → Prediction Head    │    │
+│   └──────────────────────────────────────────────┘    │
+│                          │                             │
+│   ┌──────────────────────▼───────────────────────┐    │
+│   │         BENCHMARK + SELECTION ENGINE          │    │
+│   │  Compare metrics → Select best architecture   │    │
+│   └──────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────┘
+               │
+┌──────────────▼──────────────────────────────────────┐
+│          STELLAR DATA LAYER                          │
+│  Horizon API │ Soroban RPC │ Bytecode Parser         │
+│  Transaction Indexer │ Address Graph Builder         │
+└─────────────────────────────────────────────────────┘
+               │
+┌──────────────▼──────────────────────────────────────┐
+│          STORAGE + MODEL REGISTRY                    │
+│  PostgreSQL (findings) │ Redis (cache, queues)       │
+│  S3 (WASM artifacts, model weights)                  │
+│  Model Registry (versioned weights + metadata)       │
+└─────────────────────────────────────────────────────┘
+
+7.2 Quantum-Classical Inference Engine — detail
+This is the core QuantumInfra technology. The same hybrid architecture used across all QuantumInfra models is adapted here for blockchain security intelligence tasks.
+Blockchain Data (WASM bytes OR transaction records)
+          │
+          ▼
+Classical Feature Engineering
+  • Bytecode: opcode frequency, control-flow graph features, call depth
+  • Transactions: temporal sequences, value flow graphs, address clustering
+          │
+          ▼
+Classical Encoder (PyTorch MLP / GNN)
+  • Produces dense latent representation
+          │
+   ┌───────┴────────┐
+   │                │
+   ▼                ▼
+CLASSICAL       QUANTUM CIRCUIT LAYER (PennyLane)
+HEAD            • Parameterized rotation gates encode latent vector
+   │            • Variational circuit: n_qubits = min(8, max(2, features))
+   │            • Gradient via parameter-shift rule
+   │            • Output: quantum-enhanced representation
+   │                │
+   │                ▼
+   │            HYBRID PREDICTION HEAD
+   │                │
+   └───────┬────────┘
+           │
+           ▼
+BENCHMARK ENGINE
+  • Classical score vs. Hybrid score
+  • Delta, F1, precision, recall, latency
+  • Architecture selection: deploy best performer
+           │
+           ▼
+API RESPONSE (JSON)
+
+7.3 Stellar Data Layer
+•Transaction history: Horizon API integration
+•Fetch operation history, payment flows, contract invocations for any address.
+•Paginated ingestion with cursor-based streaming for large address histories.
+•Contract data: Soroban RPC integration
+•Fetch deployed contract WASM, contract state, ledger entries.
+•Simulate contract invocations for behavioral modeling.
+•Static analysis: WASM Bytecode Parser
+•Disassemble Soroban WASM into instruction sequences.
+•Extract control-flow graph, function signatures, external call sites.
+•Map bytecode patterns to QI-Guard vulnerability taxonomy.
+•Behavioral modeling: Transaction Graph Builder
+•Build address interaction graphs from Stellar ledger data.
+•Compute temporal features: transaction velocity, value concentration, new-address exposure.
+7.4 Model Registry
+QI-Guard maintains a versioned model registry consistent with the QuantumInfra platform standard:
+Field
+Description
+model_id
+Unique identifier: qi-guard-stellar-0.1.0
+dataset_version
+Hash of training dataset used
+architecture
+classical | hybrid | quantum-only
+quantum_config
+n_qubits, circuit depth, gate set
+benchmark_results
+Full metrics table at time of deployment
+training_cost
+Compute tokens consumed in training
+deployment_date
+ISO 8601 timestamp
+model_hash
+SHA-256 of serialized weights
+status
+active | deprecated | testing
+
+8. Authentication and Access Tiers
+8.1 API key model
+Authentication follows the QuantumInfra platform standard: API keys are generated per project in the developer dashboard. Every key is scoped to a set of permissions and enforces rate limits per tier.
+Authorization: Bearer qig_live_xxxxxxxxxxxxxxxxxxxx
+
+# Key types
+qig_live_xxx   — Production key
+qig_test_xxx   — Testnet / sandbox key (no cost, rate-limited)
+qig_ci_xxx     — CI/CD key (scoped to analyze only, no dashboard access)
+8.2 Pricing tiers
+Tier
+Price / Limits / Use case
+Developer
+Free — 50 contract analyses/month, 100 address analyses/month, Testnet only. For individual builders learning Soroban.
+Builder
+$49/mo — 500 contract analyses, 2,000 address analyses, Mainnet, CI/CD integration, email alerts, benchmark history 30 days.
+Protocol
+$199/mo — Unlimited contract analyses, 20,000 address analyses, continuous monitoring, webhooks, 1-year benchmark history, priority support.
+Enterprise
+Custom — Dedicated inference, SLA, custom model training on proprietary datasets, self-hosted option, audit-ready reports.
+
+9. MVP Build Plan
+9.1 Phase 0 — Foundation (Weeks 1–3)
+•Deploy FastAPI backend with JWT + API key authentication.
+•Integrate Stellar Horizon API: transaction ingestion, address lookup.
+•Integrate Soroban RPC: contract WASM fetch, state queries.
+•Build basic WASM bytecode parser: opcode extraction, function signature mapping.
+•Set up PostgreSQL schema: projects, contracts, addresses, findings, jobs.
+•Set up Redis: job queues, caching.
+•Deploy cloud infrastructure (AWS): ECS containers, RDS, ElastiCache, S3.
+9.2 Phase 1 — Intelligence Engine (Weeks 4–7)
+•Build classical ML pipeline: feature extraction + gradient boosting classifier for contract vulnerability patterns.
+•Train on public Soroban vulnerability dataset + EVMbench-compatible samples.
+•Build hybrid pipeline: PennyLane quantum circuit layer on top of classical encoder.
+•Implement benchmark engine: run both pipelines per request, record delta.
+•Build Behavioral Anomaly module: temporal feature engineering + isolation forest baseline.
+•Build Quantum Resilience module: cryptographic surface scanner + NIST PQC checklist.
+•Model Registry: versioned weight storage, metadata, reproducibility.
+9.3 Phase 2 — API + SDK (Weeks 8–10)
+•Finalize all four API endpoints with OpenAPI 3.0 spec.
+•Build JavaScript/TypeScript SDK: npm package @quantuminfra/qi-guard.
+•Build Python SDK: PyPI package qi-guard.
+•Build GitHub Actions integration: quantuminfra/qi-guard-action.
+•Developer dashboard (React): project management, findings, benchmark charts, API key management.
+•Stripe billing integration: Developer / Builder / Protocol tiers.
+9.4 Phase 3 — Launch + SCF (Weeks 11–16)
+•Deploy to production on stellar.quantuminfra.io.
+•Onboard 10 Soroban developer projects as design partners (free Protocol tier during beta).
+•Publish QI-Guard vs. Scout benchmark report: precision, recall, F1 on a shared Soroban vulnerability dataset.
+•Submit SCF Build Award interest form with working product and benchmark data.
+•Launch on Stellar Developer Discord, SCF community forum.
+•Target: 100 API integrations, 10 paid projects by Month 6.
+
+10. MVP Definition of Done
+QI-Guard for Stellar MVP is complete when a Soroban developer can:
+•Sign up at stellar.quantuminfra.io and generate an API key in under 2 minutes.
+•Install the JS or Python SDK and run their first contract analysis in under 5 minutes.
+•Submit a Soroban WASM file and receive a structured Contract Risk Profile with classical and hybrid scores.
+•Submit a Stellar address and receive a Behavioral Anomaly Report with evidence.
+•Request a Quantum Resilience score for any address or contract.
+•See a side-by-side classical vs. hybrid benchmark in every API response.
+•Integrate QI-Guard into a GitHub Actions workflow with a single YAML block.
+•Configure an alert for continuous monitoring of a deployed protocol.
+•View all findings, benchmarks, and model versions in the dashboard.
+•Access all results via REST API from any language.
+
+11. Non-Goals
+•QI-Guard will not claim quantum computing automatically makes a model superior — every quantum contribution is measured and reported.
+•QI-Guard will not replace Scout, Almanax, Sunbeam, or human auditors — it complements them.
+•QI-Guard will not execute exploit transactions against live protocols.
+•QI-Guard will not share customer contract data or address history with other customers.
+•QI-Guard will not support EVM chains, Solana, or Move ecosystems in the MVP — Stellar/Soroban only.
+•QI-Guard will not make autonomous remediation changes — all output is advisory.
