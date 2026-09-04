@@ -25,7 +25,7 @@ from app.schemas import (
     AnomalyScore,
     PatternDetail,
 )
-from app.services.wasm_parser import wasm_disassembler
+from app.services.wasm_parser import wasm_disassembler, WASMParserError
 from app.services.horizon import horizon_client
 from app.services.soroban import soroban_rpc_client
 from app.services.classical_engine import classical_engine
@@ -83,7 +83,13 @@ async def analyze_contract(
         wasm_bytes = b"\x00asm\x01\x00\x00\x00\x01\x04\x01\x60\x00\x00\x02\x0a\x01\x03env\x04auth\x00\x00\x07\x13\x01\x0etransfer_admin\x00\x00\x0a\x04\x01\x02\x00\x0b"
 
     # 1. Disassemble & Extract Static Features
-    parsed_wasm = wasm_disassembler.parse_bytecode(wasm_bytes)
+    try:
+        parsed_wasm = wasm_disassembler.parse_bytecode(wasm_bytes)
+    except WASMParserError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid WASM binary: {str(e)}"
+        )
 
     # 2. Classical PyTorch MLP Encoding
     feat_vec, latent_emb, classical_score = classical_engine.encode_wasm_features(parsed_wasm)

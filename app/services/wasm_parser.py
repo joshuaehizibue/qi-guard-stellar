@@ -69,6 +69,8 @@ class WASMDisassembler:
             section_id = bytecode[offset]
             offset += 1
             section_len, bytes_read = self._decode_uleb128(bytecode, offset)
+            if bytes_read == 0:
+                break
             offset += bytes_read
 
             section_data = bytecode[offset : offset + section_len]
