@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     LIMIT_PROTOCOL_CONTRACTS: int = -1  # Unlimited
     LIMIT_PROTOCOL_ADDRESSES: int = 20000
 
+    # Stripe & Billing
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PRICE_ID_BUILDER: str = "price_builder_monthly"
+    STRIPE_PRICE_ID_PROTOCOL: str = "price_protocol_monthly"
+    DASHBOARD_URL: str = "http://localhost:3000"
+
     class Config:
         case_sensitive = True
         env_file = ".env"

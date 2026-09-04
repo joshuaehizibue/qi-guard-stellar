@@ -1,0 +1,30 @@
+{
+  "name": "@quantuminfra/qi-guard",
+  "version": "0.1.0",
+  "description": "Official JavaScript and TypeScript SDK for QI-Guard Quantum Smart Contract Security on Stellar/Soroban",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "qi-guard": "./bin/qi-guard.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node test/test_sdk.js"
+  },
+  "keywords": [
+    "stellar",
+    "soroban",
+    "security",
+    "smart-contracts",
+    "quantum-computing",
+    "pqc",
+    "audit"
+  ],
+  "author": "QuantumInfra",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,46 @@
+name: "QI-Guard Soroban Security Gate"
+description: "Quantum-enhanced smart contract security analysis and CI/CD policy enforcement for Stellar/Soroban"
+author: "QuantumInfra"
+
+inputs:
+  api-key:
+    description: "QI-Guard CI or Live API Key (qig_ci_... or qig_live_...)"
+    required: true
+  wasm-path:
+    description: "Path to compiled Soroban WASM contract file (e.g. target/wasm32-unknown-unknown/release/vault.wasm)"
+    required: true
+  contract-address:
+    description: "Optional deployed Stellar contract address (C...)"
+    required: false
+  fail-severity:
+    description: "Minimum vulnerability severity that triggers a CI failure (LOW, MEDIUM, HIGH, CRITICAL, NONE)"
+    required: false
+    default: "HIGH"
+  fail-score:
+    description: "Maximum allowable risk score (0-100) before triggering a CI failure"
+    required: false
+    default: "75"
+  api-url:
+    description: "QI-Guard API Base URL"
+    required: false
+    default: "https://stellar.quantuminfra.io/v1"
+
+outputs:
+  risk-score:
+    description: "Quantum-hybrid risk score (0-100)"
+  severity:
+    description: "Overall security severity level"
+  findings-count:
+    description: "Total number of detected vulnerabilities"
+  quantum-delta:
+    description: "Quantum detection sensitivity delta points"
+  pqc-score:
+    description: "Post-quantum cryptography readiness score"
+
+runs:
+  using: "node20"
+  main: "index.js"
+
+branding:
+  icon: "shield"
+  color: "purple"

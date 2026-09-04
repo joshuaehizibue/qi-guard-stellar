@@ -85,3 +85,17 @@ def require_scopes(allowed_key_types: List[KeyType]):
             )
         return auth
     return scope_checker
+
+
+async def get_optional_project(
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[AuthenticatedContext]:
+    """Returns AuthenticatedContext if valid bearer key is present, or None if absent/anonymous."""
+    if not credentials or not credentials.credentials:
+        return None
+    try:
+        return await get_current_project(credentials, db)
+    except HTTPException:
+        return None
+

@@ -46,6 +46,14 @@ app.add_middleware(
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
+import os
+from fastapi.staticfiles import StaticFiles
+
+dashboard_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dashboard", "dist")
+if os.path.exists(dashboard_dist):
+    app.mount("/dashboard", StaticFiles(directory=dashboard_dist, html=True), name="dashboard")
+
+
 @app.get("/health", tags=["Health"])
 async def health_check():
     return {
@@ -53,3 +61,4 @@ async def health_check():
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION
     }
+
