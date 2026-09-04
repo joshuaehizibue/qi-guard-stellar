@@ -1,0 +1,63 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qiguard-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_NAME=QI-Guard for Stellar
+      - VERSION=0.1.0
+      - DATABASE_URL=postgresql+asyncpg://qig_admin:qig_secure_pass_2026@postgres:5432/qiguard
+      - REDIS_URL=redis://redis:6379/0
+      - STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
+      - SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+      - DASHBOARD_URL=http://localhost:8000/dashboard
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: qiguard-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=qig_admin
+      - POSTGRES_PASSWORD=qig_secure_pass_2026
+      - POSTGRES_DB=qiguard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qig_admin -d qiguard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: qiguard-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

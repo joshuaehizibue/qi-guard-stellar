@@ -1,0 +1,68 @@
+{
+  "family": "qiguard-stellar-prod",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "2048",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::123456789012:role/qiguardTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "qiguard-backend",
+      "image": "123456789012.dkr.ecr.us-east-1.amazonaws.com/qiguard-stellar:v0.1.0-mvp",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "PROJECT_NAME", "value": "QI-Guard for Stellar Production"},
+        {"name": "VERSION", "value": "0.1.0"},
+        {"name": "API_V1_STR", "value": "/v1"},
+        {"name": "STELLAR_HORIZON_URL", "value": "https://horizon.stellar.org"},
+        {"name": "SOROBAN_RPC_URL", "value": "https://mainnet.sorobanrpc.com"},
+        {"name": "DASHBOARD_URL", "value": "https://stellar.quantuminfra.io/dashboard"}
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:qiguard/prod/db_url"
+        },
+        {
+          "name": "REDIS_URL",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:qiguard/prod/redis_url"
+        },
+        {
+          "name": "SECRET_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:qiguard/prod/secret_key"
+        },
+        {
+          "name": "STRIPE_SECRET_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:qiguard/prod/stripe_secret"
+        },
+        {
+          "name": "STRIPE_WEBHOOK_SECRET",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:qiguard/prod/stripe_webhook_secret"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/qiguard-stellar-prod",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}
