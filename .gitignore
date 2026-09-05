@@ -59,6 +59,8 @@ docker-compose.override.yml
 *.dylib
 *.dll
 target/               # Rust / Cargo build output
+external/
+
 
 # ── IDE / editor ──────────────────────────────────────────────────────────────
 .vscode/

@@ -1,0 +1,1219 @@
+[
+  {
+    "id": "SSP-001",
+    "title": "Dispute resolver and platform can call with arbitrary trustless_work_address and redirect TW fees to another address",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  Some public Smart Escrow functions accept the parameter `trustless_work_address: Address`, which is the address where the Smart Escrow sends the Trustless Work fees. The two functions that accept this parameter are `resolve_dispute` and `release_funds`, both of which do not validate the address. This me",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-002",
+    "title": "Maximum relative amount of fees not checked at initialization time",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "HIGH",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "1da344e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/1da344e"
+    ],
+    "code_snippet": "let trustless_work_fee = SafeMath::safe_mul_div(\n    total_resolved_funds,\n    TRUSTLESS_WORK_FEE_BPS,\n    BASIS_POINTS_DENOMINATOR,\n)?;\nlet platform_fee = SafeMath::safe_mul_div(\n    total_resolved_funds,\n    platform_fee_bps,\n    BASIS_POINTS_DENOMINATOR,\n)?;\nlet total_fees = BasicMath::safe_add(trustless_work_fee, platform_fee)?;\nlet net_approver_funds = if total_resolved_funds > 0 {\n    let approver_fee_share =\n        SafeMath::safe_mul_div(approver_funds, total_fees, total_resolved_funds)?;\n    BasicMath::safe_sub(approver_funds, approver_fee_share)?\n} else {\n    0\n};",
+    "description": "Severity: High   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  The Smart Escrow initialization function does not check whether the fees exceed a maximum amount.  There are two kinds of fees: the `trustless_work_fee` and the `platform_fee`. The `trustless_work_fee` is set to a fixed value at Smart Contract compilation time, while the `platform_fee` is passed as a",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-003",
+    "title": "Initialization possible with pre-approved milestones",
+    "category": "INITIALIZATION_OR_STATE_BYPASS",
+    "severity": "MEDIUM",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "6d979b5"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6d979b5"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Medium   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  At initialization, an `Escrow` object is passed that defines the Smart Escrow properties, including the details of the milestones. For this purpose, the passed `Escrow` struct is validated with the function `validate_initialize_escrow_conditions`.  This function does not check whether any passed miles",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-004",
+    "title": "Bypass of the Escrow Initialization Validations",
+    "category": "INITIALIZATION_OR_STATE_BYPASS",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Partially addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6d979b5"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Partially addressed by client  At initialization, an `Escrow` struct is passed that defines the Smart Escrow properties. For this purpose, the passed `Escrow` struct is validated with the function `validate_initialize_escrow_conditions`. When initializing an instance of a Smart Escrow, using the `initialize_escrow` endpoint",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-005",
+    "title": "Front-running attack by a malicious platform on fund_escrow with update_escrow",
+    "category": "INITIALIZATION_OR_STATE_BYPASS",
+    "severity": "HIGH",
+    "difficulty": "High",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "6d979b5"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6d979b5"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: High   Recommended Action: Fix Code   Status: Addressed by client  A user can fund the Smart Escrow by utilizing the Smart Escrow public function `fund_escrow`. For this purpose, the user only needs to specify the amount of tokens to deposit.  The `platform` role may change the Smart Escrow properties, provided no funds have been deposited, no milestones approved, and",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-006",
+    "title": "Smart Escrow uses signed integer type i128 without sign checks",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "HIGH",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Partially addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "6d979b5"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/33bfafb",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6d979b5",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/58539ca"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Medium   Recommended Action: Fix Code   Status: Partially addressed by client  The Smart Escrow uses the `i128` type for multiple attributes, but is missing sign checks at different locations. This allows for negative parameters to be passed to Smart Escrow public functions and Smart Escrow attributes. On this topic, we highlight:  1. `platform_fee`  In particular, th",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-007",
+    "title": "The Approver Can Disapprove Milestones",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "LOW",
+    "difficulty": "Low",
+    "action": "Fix Design",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "fe2623f"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/2b31f1e",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/fe2623f"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Low   Recommended Action: Fix Design   Status: Addressed by client  The Smart Escrow contract contains a design flaw that exposes it to a griefing attack by the `Approver`. While the `Approver`'s role is to approve milestones, the `approve_milestone` function allows them to both approve and disapprove milestones using a boolean flag, defined by the `new_flag` parameter",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-008",
+    "title": "Exceeding Assets Will Be Permanently Locked in The Multi-Release Smart Escrows",
+    "category": "ASSET_LOCK_INVARIANT_VIOLATION",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "2f6ef92"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/2f6ef92"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  When dealing with the release of its funds, the Single-Release version of the Smart Escrow expects a pre-determined amount to be withdrawn via the `release_funds` endpoint or the total balance of the escrow via the `resolve_dispute` endpoint. If the escrow holds an excess balance beyond the expected amo",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-009",
+    "title": "Milestones can both be released and dispute-resolved in the multi-release smart escrows",
+    "category": "ASSET_LOCK_INVARIANT_VIOLATION",
+    "severity": "MEDIUM",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "bbdfcc4"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/bbdfcc4"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Medium   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  In the multi-release smart escrows, amounts are released on a per-milestone basis. Each milestone defines a specific amount to be released upon completion. At the same time, the smart contract limits the amount that can be released during a milestone dispute resolution to at most that value specifi",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-010",
+    "title": "Gas optimizations",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "4ee04c2",
+      "bba602a"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/7639179",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/a97eefe",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/7b9c2bb",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/5107d34",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/9dd0d39",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4ee04c2",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/c87c1a8",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/af79c87",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/bba602a",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/32c985a",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/ecbe0be"
+    ],
+    "code_snippet": "if token_client.balance(&contract_address) < total_funds {\n    return Err(ContractError::InsufficientFundsForResolution);\n}\n\nlet fee_result = FeeCalculator::calculate_dispute_fees(\n    approver_funds,\n    receiver_funds,\n    escrow.platform_fee as i128,\n    total_funds,\n)?;\n\nlet current_balance = token_client.balance(&contract_address);",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  Here are some notes on the protocol's particularities, comments, and suggestions to improve the code or the business logic of the protocol in a best-practice sense. They do not present issues with the audited protocol themselves. Still, they are advised to either be aware of or to follow when possible.  **token_cl",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-011",
+    "title": "Initialization possible with zero milestones",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "ecbe0be"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/ecbe0be"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  At initialization, an `Escrow` struct is passed that defines the Smart Escrow properties, including the number and details of the milestones. For this purpose, the passed `Escrow` struct is validated with the function `validate_initialize_escrow_conditions`.  This function checks whether a maximum length that is h",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-012",
+    "title": "At initialization, the decimals attribute of Trustline is not validated",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "LOW",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "c76c7dd"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/c76c7dd"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Recommended Action: Fix Code   Status: Addressed by client  The Smart Escrow uses the token specified in `Escrow::trustline`, which contains both the token address and its number of decimals.  The attribute `decimals: u32` of type `Trustline` is exclusively used in the public Smart Escrow function `get_multiple_escrow_balances` that returns the balance and decimals of multiple Sma",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-013",
+    "title": "validate_release_conditions returns wrong error when checking whether funds were already released",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "d77d7ae"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/d77d7ae",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/5b9344f"
+    ],
+    "code_snippet": "if escrow.flags.released {\n    return Err(ContractError::EscrowAlreadyResolved);\n}",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The function `validate_release_conditions` checks whether the funds were already released and in that case returns an error. However, the function incorrectly returns an error indicating that the Smart Escrow was already resolved, rather than specifying that the funds were already released. See `validators/escrow.",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-014",
+    "title": "validate_release_conditions does not check whether the Smart Escrow has already been resolved",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "5b9344f"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/5b9344f"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The function `validate_release_conditions` does not check whether the Smart Escrow has already been resolved. Though, as observed in [B04] validate_release_conditions returns wrong error when checking whether funds were already released, the error `ContractError::EscrowAlreadyResolved` is falsely returned instead",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-015",
+    "title": "dispute_resolver should consent to Smart Escrow prior to funding the escrow",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "LOW",
+    "difficulty": "Medium",
+    "action": "Fix Design",
+    "status": "Not addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: Low   Recommended Action: Fix Design   Status: Not addressed by client  Currently, a Smart Escrow can be initialized and used right away with arbitrary role allocations, including the `dispute_resolver` that is typically managed by the platform. This means that the initializing party can choose an arbitrary platform fee and specify the `dispute_resolver` address.  In case of a dispute,",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-016",
+    "title": "Smart Escrows Are Deployers Despite Having Constructors",
+    "category": "INITIALIZATION_OR_STATE_BYPASS",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Not addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Not addressed by client  The Smart Escrow, which also has a constructor, has the capabilities of deploying and initializing other contracts through its `deploy` endpoint, making it a deployer. The primary purpose of deployer contracts on Soroban was to serve as a workaround for the initial absence of constructors. They were used to de",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-017",
+    "title": "Disputed Funds Don't Go Back to Funders",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "MEDIUM",
+    "difficulty": "Low",
+    "action": "Fix Design",
+    "status": "Not addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: Medium   Difficulty: Low   Recommended Action: Fix Design   Status: Not addressed by client  The Smart Escrow contract, which can be used for crowdsourcing, has a limitation in its dispute resolution mechanism. While the contract facilitates multi-party funding for a Service Provider's project milestones, its logic for handling disputes does not consider the possible multiplicity of fun",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-018",
+    "title": "The Trustless Work Platform Does Not Handle Storage Archival",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Not addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Not addressed by client  When a Soroban smart contract is deployed on the Stellar network, its ledger entries, which contain the contract's code and data, are given a Time to Live (TTL). This TTL is a specific number of ledgers, and if it's not extended, the ledger entries will eventually expire and be moved to an archive. This archiv",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-019",
+    "title": "The Milestone Updates Phase Can Be Skipped",
+    "category": "ASSET_LOCK_INVARIANT_VIOLATION",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "93c4c37"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/93c4c37",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/898097a"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  According to Trustless Work's documentation, the expected lifecycle of an escrow is composed of 5 stages: 1. Initiation Phase: The foundation of the process, where roles, responsibilities, and transaction terms are established, and the escrow contract is created. 2. Funding Phase: The phase where the funds are dep",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-020",
+    "title": "It Is Possible To Change The Platform Address Of A Smart Esrow",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "118a316"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/118a316"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The `platform` address, as previously discussed in the Platform Features and Logic Description, is the authority representing the platform or entity responsible for the mediation of the agreement between the `service_provider` and, primarily, funders. Due to its role, the `platform` address is the only address cap",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-021",
+    "title": "Differences Between the Single and Multi-Release Escrows",
+    "category": "ASSET_LOCK_INVARIANT_VIOLATION",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "699e25e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/699e25e"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  While reviewing the code of the Multi-Release Smart Escrow version, multiple minor differences between the implementations have been found in sections that implement the same logic. These differences may hinder the maintainability of both versions of the contracts.  One of these differences, however, is more signi",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-022",
+    "title": "In-Memory Queue Storage Causing Data Loss and Scaling Issues",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "f353f3c"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/f353f3c",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4412028",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/98b61ab",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/0bf1ac9"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The `PendingWriteQueueService` uses an in-memory `Map<string, PendingWriteItem>()` for transaction queue storage, which introduces multiple critical issues: 1. Data Loss on Server Restart/Crash: All pending transactions are lost when the server restarts, leading to incomplete blockchain operations that",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-023",
+    "title": "Open CORS Policy Allowing Unauthorized Cross-Origin Requests",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "HIGH",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "4a82d73"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4a82d73"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  The `main.ts` file has an overly permissive CORS configuration that allows requests from any origin:  ```ts app.enableCors({   origin: true, // Allows ANY origin   methods: \"GET,HEAD,PUT,PATCH,POST,DELETE\",   credentials: true, // Dangerous with origin: true }); ```  This configuration creates severa",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-024",
+    "title": "Missing Authentication Guards on Critical Endpoints",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "4f7b37e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/fe8a6f6",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/859e8d9",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4f7b37e",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/2e8b7cf"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  Multiple critical endpoints lack proper authentication guards, making them publicly accessible: 1. User Endpoints: All `/user/*` API endpoints don't require authentication. Users can:    - Get all users data via `GET /user/get-all`, including sensitive `apiKey` information    - Update any user's data as",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-025",
+    "title": "Authorization Bypass in Escrow Repository",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "MEDIUM",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "f3ac8da"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/f3ac8da"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Medium   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The `escrow.repository.ts` file contains a critical authorization bypass vulnerability in the `findByAdvancedQuery` method. When both `signer` and `contractIds` parameters are provided, the method only validates against `contractIds` but ignores the `signer` validation:  ```ts } else if (contractIds &",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-026",
+    "title": "Information Disclosure Through Error Messages",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "LOW",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "cb5d5f6"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/b3f9255",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/cb5d5f6"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The `user.repository.ts` file exposes internal system information through detailed error messages:  ```ts throw new NotFoundException(`User ${id} not found`); throw new ConflictException(   `User with address ${data.address} already exists`, ); ```  These detailed error messages introduce multiple securi",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-027",
+    "title": "HTTP Connections Allowed in Production Environment",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "6cc12b5"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6cc12b5"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  Multiple locations in the codebase allow HTTP connections to Stellar RPC servers by using `{ allowHttp: true }`. This configuration permits unencrypted communication with blockchain nodes, which poses significant security risks in production environments.  Security Risks: 1. Man-in-the-Middle Attacks: H",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-028",
+    "title": "Unsafe HTTP Methods for State-Changing Operations",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "27c7ebe"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/27c7ebe"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The `notifications.controller.ts` uses GET HTTP methods for operations that change system state. This violates REST principles and creates security vulnerabilities:  ```ts // Using GET for state-changing operations (incorrect) @Get('/endpoint-that-changes-state') someStateChangingOperation() {   // Modi",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-029",
+    "title": "Type Safety Issues - From 'any' Types to DocumentData Casting",
+    "category": "INITIALIZATION_OR_STATE_BYPASS",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "67c890c"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/55fa23b",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/01724da",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4b5a87a",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/f0b34c3",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/bdf8d64",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/67c890c"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The codebase previously made extensive use of the `any` type throughout multiple files, which compromised TypeScript's type safety benefits. This originally affected:  Repository Layer: - `user.repository.ts`: Functions like `getAllUsers`, `findById`, `create`, `addApiKey`, `update`, `updateAddress` returned `Prom",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-030",
+    "title": "Incorrect Validation Decorators for Numeric Fields",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "LOW",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "ee82a6e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/ee82a6e"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Recommended Action: Fix Code   Status: Addressed by client  The `single-release-escrow.class.ts` file contains incorrect validation decorators where numeric fields are decorated with `@IsString()` instead of the appropriate `@IsNumber()` decorator:  ```ts // Incorrect validation @IsString() amount: number;  @IsString() approverFunds: number;  @IsString() receiverFunds: number;  @I",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-031",
+    "title": "Client-Side Timestamps Creating Data Inconsistency",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "LOW",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "7942bd4"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/7942bd4",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/8360e9b"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  Multiple files throughout the codebase use client-side timestamps (`new Date()`) instead of server-side timestamps for Firestore operations. This creates several critical issues:  Problems with Client-Side Timestamps: 1. Timezone Issues: Clients in different timezones generate inconsistent timestamps 2.",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-032",
+    "title": "Missing Input Validation and Type Annotations",
+    "category": "INTEGER_SIGNEDNESS_UNDERFLOW",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "6667272"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6667272"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  Several functions throughout the codebase lack proper input validation and explicit type annotations, creating potential runtime errors and security vulnerabilities:  Missing Type Annotations: 1. `parse.utils.ts`: The `adjustPricesToMicroUSDC` function has missing type annotation for the `decimals` para",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-033",
+    "title": "Unreliable Type Guard Functions and Interface Design Issues",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "3c84811"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/3c84811"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  **Unreliable Type Guards**  The `isRawSingleEscrow()` and `isRawMultiEscrow()` functions use property presence (`\"amount\" in data`) as discriminants instead of the explicit type field. This approach is fragile and may lead to incorrect type narrowing:  ```ts // Current fragile approach export function isRawSingleE",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-034",
+    "title": "Environment Configuration Management Issues",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Document Prominently",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "702c7ed"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/702c7ed"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Document Prominently   Status: Addressed by client  **Environment Variable Inconsistencies:**  The `.env.example` file contains inconsistencies with actual code usage:  1. Firebase Configuration Mismatch:    - `.env.example` uses: `FIREBASE_PROD_PROJECT_ID`, `FIREBASE_PROD_CLIENT_EMAIL`, `FIREBASE_PROD_PRIVATE_KEY`    - Actual code uses: `FIREBASE_PROJE",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-035",
+    "title": "Code Quality and Documentation Issues",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "c8e5a65"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/c8e5a65"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  **Missing API Documentation:**  Multiple DTOs lack proper Swagger documentation, making the API difficult to understand and use: - `LoginUserDto`, `FundWithMemoDto`, `UpdateUserDto` missing `@ApiProperty` decorators - `notifications/test` controller lacks `@ApiTag(\"Notifications\")` - Internal endpoints not exclude",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-036",
+    "title": "Data Architecture and Repository Pattern Issues",
+    "category": "INITIALIZATION_OR_STATE_BYPASS",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "d005371"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/5cece24",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/a4f8570",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/c8e5a65",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/9dd6787",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/d005371"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  **Repository Pattern Bypass:**  The `EscrowFirestoreService.saveEscrow()` method bypasses the repository layer and calls `addEscrow()` directly, ignoring carefully designed type conversions:  ```ts // Current: Bypasses repository pattern await this.firestoreService.addEscrow(docId, escrowProperties);  // Should us",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-037",
+    "title": "Development Tooling and Code Quality Setup",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The codebase previously lacked proper development tooling and code quality enforcement mechanisms:  **Original Issues:**  1. Missing ESLint Configuration: No ESLint setup for TypeScript code quality enforcement 2. No Pre-commit Hooks: No automated code quality checks before commits 3. Outdated Husky Version: Need",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-038",
+    "title": "Install ESLint and related packages",
+    "category": "GRIEFING_STATE_REVERSION",
+    "severity": "MEDIUM",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "npm install --save-dev @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-039",
+    "title": "Install Husky for git hooks",
+    "category": "GRIEFING_STATE_REVERSION",
+    "severity": "MEDIUM",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "npm install --save-dev husky",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-040",
+    "title": "Install Prettier and integration",
+    "category": "GRIEFING_STATE_REVERSION",
+    "severity": "MEDIUM",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-041",
+    "title": "Install lint-staged for efficient pre-commit processing",
+    "category": "GRIEFING_STATE_REVERSION",
+    "severity": "MEDIUM",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "67c890c"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/6c354fe",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/fc3eb3a",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/15a3f13",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/67c890c",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/3a27c6a",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/5329a3b",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/35c0cba"
+    ],
+    "code_snippet": "",
+    "description": "npm install --save-dev lint-staged ```  ## Status This finding has been addressed in commit IDs [`67c890c`](https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/67c890c), [`fc3eb3a`](https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/fc3eb3a), [`15a3f13`](https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/15a3f13), [`3a27c6a`](https://github.com/",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-042",
+    "title": "Backend allows for submitting any pre-signed transaction to the Stellar blockchain",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "LOW",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "9a4006e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/9a4006e"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The function `sendTransaction` at `src/stellar-contract/helper/helper.service.ts:74` takes a signed transaction and sends the transaction to the Stellar blockchain. However, the intended flow is that only transactions originally generated by the backend, signed by the end-user on the client side, and the",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-043",
+    "title": "Singleton State Sharing in Transaction Builder",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "MEDIUM",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "575a047"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/575a047"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Medium   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  The `StellarTransactionBuilderService` is registered as a singleton in NestJS but maintains mutable instance state, resulting in critical race conditions when multiple requests access the service at the same time. This design flaw can lead to transactions being built with incorrect parameters, pote",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-044",
+    "title": "Insecure private key storage in singleton service instance variables",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "939242c"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/939242c"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The `HelperService` stores sensitive private key material in an instance variable (`sourceKeypair`), which creates security risks in a singleton service architecture. This pattern retains private keys in memory longer than necessary and potentially exposes them across multiple method calls within the same service",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-045",
+    "title": "Inefficient database querying",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "LOW",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "5007e8d"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/5007e8d"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  The codebase uses inefficient database queries and filters manually after fetching multiple or all documents of a collection. For example, the following code from `src/notifications/notifications.service.ts:57` applies a Firestore query and then performs additional manual filtering afterwards.  ```ts",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-046",
+    "title": "Notifications are created every hour once they start getting generated",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "LOW",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "0652a79"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/0652a79"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  **Cron jobs:**  The backend uses the `@Cron` annotations from `@nestjs/common` to create functions that are run periodically to create notifications for users. These functions check for criteria such as smart escrow and milestone staleness to remind the users for pending work items.  For example, the",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-047",
+    "title": "No notifications are being created for multi-release escrows",
+    "category": "ASSET_LOCK_INVARIANT_VIOLATION",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "ee38c9e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/ee38c9e"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The methods in `src/notifications/notifications.service.ts` that generate user notifications only consider single release escrows instead of supporting both single-release and multi-release escrows: - `checkHighValueDisputes` - `checkInactiveEscrows` - `checkPendingEscrows` - `checkCompletedMilestones`  ## Recomme",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-048",
+    "title": "Use of floating-point number type for critical values",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "ee82a6e"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/ee82a6e"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The codebase makes extensive use of the JavaScript primitive type `number`, which is a double-precision 64-bit floating point number. Due to the floating-point implementation, the `number` type is prone to rounding errors by nature. Simply parsing a numerical string to a number may round the number upwa",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-049",
+    "title": "API key does not meet security standards",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "8360e9b"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/9ff80a5",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/8360e9b",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/2e8b7cf",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/12dfbc2",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/d439c66"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The backend uses JWT for user session authorization and additionally supports API keys. However, the API keys are currently not used anywhere in the codebase for actual authorization, which makes them serve no purpose. All endpoints that require authorization currently make use of the JWT token.  The AP",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-050",
+    "title": "Not using synced blockchain state in database",
+    "category": "FRONT_RUNNING_RACE",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "4298787"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4298787"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The backend synchronizes the blockchain state in a database. This allows for fast querying of blockchain data without involving the Stellar API.  In `src/stellar-contract/escrow/shared/shared-escrow.service.ts:246`, the function `simulateReadOnlyCall` is used that uses the Stellar API to simulate a transaction, se",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-051",
+    "title": "API provided values are silently overridden with default values",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "0843d1b"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/0843d1b"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Informative   Recommended Action: Fix Code   Status: Addressed by client  The backend defines DTO (Data Transfer Objects) that declare the fields and types that can be sent to individual endpoints, typically encoded as JSON in the HTTP body. These values provided by the client are usually transformed and validated in the backend.  Some DTOs fields are silently overridden with default va",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-052",
+    "title": "Login authentication procedure does not authenticate user",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "HIGH",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "8360e9b"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/2e8b7cf",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/4f7b37e",
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/8360e9b"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The backend does not have an endpoint dedicated for user logins that authenticates the respective user and returns a session JWT. Instead, the backend provides the endpoints `/auth/request-api-key`, `/user/:id`, and `/user/create`.  A user can be created with the endpoint `/user/create` without any auth",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-053",
+    "title": "The backend relies on data in pendingWriteQueue and getTransaction instead of events and blockchain storage",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "HIGH",
+    "difficulty": "Medium",
+    "action": "Fix Design",
+    "status": "Not addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Medium   Recommended Action: Fix Design   Status: Not addressed by client  The backend provides an API that can be used to fetch smart escrow data from a database instead of the blockchain. The backend ensures that the database is always in sync with the blockchain state. This is currently implemented by requiring all smart escrow creation and mutation transactions to",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-054",
+    "title": "Missing validation whether user-submitted transactions were actually submitted to and processed by the blockchain",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "HIGH",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "36ece55"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/36ece55"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: Medium   Recommended Action: Fix Code   Status: Addressed by client  The function `updateFromTxHash` at `src/indexer/indexer.service.ts:23` is used to process pending transactions stored in the `pendingWriteQueue` that previously were not yet submitted to and processed by the blockchain. This function is therefore called after either the backend submits a transaction",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-055",
+    "title": "Recommendation: use self-hosted Stellar nodes as the Stellar API endpoint",
+    "category": "FEE_ARITHMETIC_OVERFLOW",
+    "severity": "INFORMATIVE",
+    "difficulty": "Medium",
+    "action": "Fix Code",
+    "status": "Not addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [],
+    "commit_urls": [],
+    "code_snippet": "",
+    "description": "Severity: Informative   Status: Not addressed by client  The backend requires a Stellar API endpoint to properly function. In case this API endpoint is hosted by a third-party, this third-party could feed wrong and potentially malicious data to the backend.  ## Recommendation To ensure that data returned by the Stellar API is valid, Stellar nodes could instead be self-hosted. These nodes are then",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-056",
+    "title": "set-trustline endpoint uses a private key as an argument",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "HIGH",
+    "difficulty": "High",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "939242c"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/939242c"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: High   Recommended Action: Fix Code   Status: Addressed by client  The endpoint `/helper/set-trustline` can be used to set a trustline on a Stellar wallet. To do so, this endpoint takes as argument the private and public keypair of the user. A transaction is prepared that enables the trustline for the user that is subsequently signed on the backend with the provided p",
+    "is_vulnerable": true
+  },
+  {
+    "id": "SSP-057",
+    "title": "Issued JWT tokens never expire",
+    "category": "ACCESS_CONTROL_OR_AUTH",
+    "severity": "LOW",
+    "difficulty": "Low",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "8360e9b"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/8360e9b"
+    ],
+    "code_snippet": "",
+    "description": "Severity: Low   Difficulty: Low   Recommended Action: Fix Code   Status: Addressed by client  The JWT tokens that are created by the backend never expire. As the users login with their wallet, it is a possibility that the ownership of wallet might change. Therefore, it would be best-practice to require users to periodically re-authenticate.  ```ts // src/auth/auth.module.ts:13 JwtModule.registerA",
+    "is_vulnerable": false
+  },
+  {
+    "id": "SSP-058",
+    "title": "Potentially never-ending loop querying the Stellar API",
+    "category": "LOGIC_VALIDATION_ERROR",
+    "severity": "HIGH",
+    "difficulty": "High",
+    "action": "Fix Code",
+    "status": "Addressed by client",
+    "protocol": "Trustless Work Smart Escrow",
+    "auditor": "Runtime Verification",
+    "repository": "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow",
+    "commits": [
+      "1b3bb0c"
+    ],
+    "commit_urls": [
+      "https://github.com/Trustless-Work/Trustless-Work-Smart-Escrow/commit/1b3bb0c"
+    ],
+    "code_snippet": "",
+    "description": "Severity: High   Difficulty: High   Recommended Action: Fix Code   Status: Addressed by client  The function `signAndSendTransaction` at `src/utils/transaction.utils.ts:100` can be used to sign a transaction in the backend and subsequently submit that transaction to the blockchain. This function waits until the transaction has been successfully processed by the blockchain.  However, this loop may",
+    "is_vulnerable": true
+  }
+]

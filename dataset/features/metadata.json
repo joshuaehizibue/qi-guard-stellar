@@ -1,0 +1,23 @@
+{
+  "dataset_name": "soroban-security-portal-ml-corpus",
+  "version": "1.0.0",
+  "sample_count": 121,
+  "train_count": 96,
+  "val_count": 25,
+  "input_feature_dim_classical": 8,
+  "input_feature_dim_extended": 16,
+  "qubit_compatibility": 8,
+  "category_mapping": {
+    "ACCESS_CONTROL_OR_AUTH": 0,
+    "FEE_ARITHMETIC_OVERFLOW": 1,
+    "INITIALIZATION_OR_STATE_BYPASS": 2,
+    "FRONT_RUNNING_RACE": 3,
+    "INTEGER_SIGNEDNESS_UNDERFLOW": 4,
+    "GRIEFING_STATE_REVERSION": 5,
+    "ASSET_LOCK_INVARIANT_VIOLATION": 6,
+    "RESOURCE_OR_GAS_OPTIMIZATION": 7,
+    "LOGIC_VALIDATION_ERROR": 8,
+    "CLEAN_VERIFIED": 9
+  },
+  "positive_ratio": 0.479
+}
