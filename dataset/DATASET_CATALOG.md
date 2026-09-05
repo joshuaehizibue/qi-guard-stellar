@@ -1,11 +1,14 @@
-# Soroban Security Portal ML Training Dataset Catalog
+# Soroban Unified Security ML Training Dataset Catalog
 
-**Corpus Version:** `1.0.0`  
-**Dataset Name:** `soroban-security-portal-ml-corpus`  
-**Primary Source:** [Inferara/soroban-security-portal](https://github.com/Inferara/soroban-security-portal) / [Stellar Security Portal](https://stellarsecurityportal.com)  
-**Total Samples:** `121` (`96` Train / `25` Validation)  
-**Positive / Vulnerable Ratio:** `47.9%`  
-**Qubit Compatibility:** `8 Qubits` (8-dimensional base feature space)
+**Corpus Version:** `2.0.0`  
+**Dataset Name:** `soroban-unified-security-corpus-v2.0`  
+**Primary Sources:**
+- [Inferara/soroban-security-portal](https://github.com/Inferara/soroban-security-portal) (Runtime Verification audits)
+- [CoinFabrik/scout-soroban-examples](https://github.com/CoinFabrik/scout-soroban-examples) (CoinFabrik Senior Security Audits)
+**Total Samples:** `171` (`136` Train / `35` Validation)  
+**Positive / Vulnerable Ratio:** `52.6%`  
+**Qubit Compatibility:** `8 Qubits` (8-dimensional base feature space)  
+**Protocols Covered:** Escrows, AMM (CPAMM/CSAMM), DAO Governance, Multisig, Payment Channels, Token Vesting, Cross-Contract Routers
 
 ---
 
@@ -71,6 +74,31 @@
 | **SSP-056** | set-trustline endpoint uses a private key as ... | `LOGIC_VALIDATION_ERROR` | **HIGH** | Trustless Work Smart Escrow | `939242c` |
 | **SSP-057** | Issued JWT tokens never expire... | `ACCESS_CONTROL_OR_AUTH` | **LOW** | Trustless Work Smart Escrow | `8360e9b` |
 | **SSP-058** | Potentially never-ending loop querying the St... | `LOGIC_VALIDATION_ERROR` | **HIGH** | Trustless Work Smart Escrow | `1b3bb0c` |
+
+---
+
+## 1.2 CoinFabrik Scout Security Review Findings
+
+| ID | Finding Title | Category | Severity | Protocol / Target | Core Vulnerable Invariant |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **SCOUT-IS-03** | Vesting Overflow in retrievable_balance | `ARITHMETIC_OVERFLOW` | **HIGH** | Token Vesting | `state.locked.checked_mul(now.into())` overflows 128-bit |
+| **SCOUT-IS-04** | Payment Channel Lack of Committed Funds | `ACCESS_CONTROL_OR_AUTH` | **HIGH** | Payment Channel | Channel init/allowance lacks escrowed token lock |
+| **SCOUT-IS-05** | Sender May Deny Funds by Short Expiration | `TIMESTAMP_DEPENDENCY` | **HIGH** | Payment Channel | Exploiting short expiration to drain locked balance |
+| **SCOUT-IS-06** | Multisig Instance Storage Exhaustion (64KB) | `STORAGE_EXHAUSTION_DOS` | **HIGH** | Multisig Wallet | Historical transaction storage leaks in 64KB instance slot |
+| **SCOUT-IS-07** | Multisig Proposed Owners Leak in Instance State | `STORAGE_EXHAUSTION_DOS` | **HIGH** | Multisig Wallet | Unbounded owner modifications in 64KB instance state |
+| **SCOUT-IS-08** | Zero Owners Initialization | `MULTISIG_DEADLOCK` | **HIGH** | Multisig Wallet | Multisig contract initialized with 0 owners cannot operate |
+| **SCOUT-IS-09** | Not Enough Owners for Required Signatures | `MULTISIG_DEADLOCK` | **HIGH** | Multisig Wallet | Signers threshold exceeding owners freezes all actions |
+| **SCOUT-IS-10** | Missing Auth in Multi-Contract Caller Storage | `ACCESS_CONTROL_OR_AUTH` | **HIGH** | Cross-Contract Router | Unrestricted caller can overwrite contract state values |
+| **SCOUT-IS-11** | Block Timestamp Manipulation in Governance | `TIMESTAMP_DEPENDENCY` | **MEDIUM** | DAO Governance | `timestamp()` manipulated by block builder vs `sequence()` |
+| **SCOUT-IS-12** | Missing Auth Guard in governance.vote_proposal | `ACCESS_CONTROL_OR_AUTH` | **HIGH** | DAO Governance | Missing `voter.require_auth()` allows vote spoofing |
+| **SCOUT-IS-13** | No Voter Whitelist Mechanism | `ACCESS_CONTROL_OR_AUTH` | **HIGH** | DAO Governance | Sybil attacker can generate accounts to pass proposals |
+| **SCOUT-IS-14** | Zero Quorum & Flash Proposal Execution | `FLASH_GOVERNANCE_NO_QUORUM` | **HIGH** | DAO Governance | Propose, vote, and close in same transaction block |
+| **SCOUT-IS-15** | Multiple Proposal Execution Replay | `REPLAY_EXECUTION` | **HIGH** | DAO Governance | Calling `close_proposal` multiple times repeats side-effects |
+| **SCOUT-IS-16** | Governance Proposal Leak in Instance State | `STORAGE_EXHAUSTION_DOS` | **HIGH** | DAO Governance | Closed proposal logs exhaust 64KB instance storage |
+| **SCOUT-IS-17** | Unrestricted Re-initialization | `UNRESTRICTED_INITIALIZATION` | **HIGH** | Governance / Multisig | Calling `initialize()` repeatedly resets global state |
+| **SCOUT-IS-18A**| AMM Swap State Exhaustion in Instance Store | `STORAGE_EXHAUSTION_DOS` | **MEDIUM** | AMM | Storing all swap pairs in single instance slot |
+| **SCOUT-IS-18B**| AMM Silent Input Amount Truncation | `SILENT_INPUT_OVERFLOW` | **HIGH** | AMM | Clamping input silently instead of reverting transaction |
+| **SCOUT-IS-19** | Constant Sum Invariant Curve Manipulation | `ARITHMETIC_OVERFLOW` | **MEDIUM** | AMM | Inflexible curve allows arbitrage drain |
 
 ---
 

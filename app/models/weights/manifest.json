@@ -1,10 +1,10 @@
 {
   "model_id": "qi-guard-stellar-0.1.0",
-  "dataset_version": "sha256_soroban_security_portal_v1.0",
+  "dataset_version": "sha256_soroban_unified_v2.0",
   "status": "trained_active",
   "classical_weights": {
     "file": "classical_mlp.pt",
-    "sha256": "9ec4eac64208877a34944bd992f18ad1be1516801673721a5188b37da9c275bc",
+    "sha256": "f8d00a44c58d8d76f557d6e50ff75d89127f3c69eb3122a94f501909b62686c0",
     "metrics": {
       "accuracy": 1.0,
       "precision": 1.0,
@@ -14,7 +14,7 @@
   },
   "quantum_hybrid_weights": {
     "file": "quantum_hybrid.pt",
-    "sha256": "849a48d3ab1f2f4b49bba9e0e97981cd3b5f37d1e7a7bb1b917f64d1db71ebf3",
+    "sha256": "3eaa35c0bebda66aa4b9436948ddd64f166d20189a9b9f03945fd000660dcf49",
     "quantum_config": {
       "n_qubits": 8,
       "circuit_depth": 4,
@@ -30,7 +30,7 @@
       "hybrid_precision": 1.0,
       "hybrid_recall": 1.0,
       "hybrid_f1": 1.0,
-      "mean_quantum_delta": 9.833951950073242
+      "mean_quantum_delta": 8.63857364654541
     }
   }
 }

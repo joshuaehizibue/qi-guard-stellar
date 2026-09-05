@@ -1,23 +1,25 @@
 {
-  "dataset_name": "soroban-security-portal-ml-corpus",
-  "version": "1.0.0",
-  "sample_count": 121,
-  "train_count": 96,
-  "val_count": 25,
-  "input_feature_dim_classical": 8,
-  "input_feature_dim_extended": 16,
-  "qubit_compatibility": 8,
-  "category_mapping": {
-    "ACCESS_CONTROL_OR_AUTH": 0,
-    "FEE_ARITHMETIC_OVERFLOW": 1,
-    "INITIALIZATION_OR_STATE_BYPASS": 2,
-    "FRONT_RUNNING_RACE": 3,
-    "INTEGER_SIGNEDNESS_UNDERFLOW": 4,
-    "GRIEFING_STATE_REVERSION": 5,
-    "ASSET_LOCK_INVARIANT_VIOLATION": 6,
-    "RESOURCE_OR_GAS_OPTIMIZATION": 7,
-    "LOGIC_VALIDATION_ERROR": 8,
-    "CLEAN_VERIFIED": 9
-  },
-  "positive_ratio": 0.479
+  "version": "2.0.0",
+  "dataset_name": "soroban-unified-security-corpus-v2.0",
+  "sources": [
+    "Inferara/soroban-security-portal (Runtime Verification Trustless Work audits)",
+    "CoinFabrik/scout-soroban-examples (CoinFabrik Senior Security Audits)"
+  ],
+  "protocols_covered": [
+    "Smart Escrows",
+    "Automated Market Makers (AMM)",
+    "DAO Governance",
+    "Multi-Signature Wallets",
+    "Payment Channels",
+    "Token Vesting",
+    "Cross-Contract Routers"
+  ],
+  "total_samples": 171,
+  "train_samples": 136,
+  "val_samples": 35,
+  "positive_ratio": 0.5263157894736842,
+  "feature_dimensions": {
+    "features_8d": 8,
+    "features_16d": 16
+  }
 }

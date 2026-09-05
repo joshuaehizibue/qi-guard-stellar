@@ -308,7 +308,7 @@ def main():
 
     manifest = {
         "model_id": "qi-guard-stellar-0.1.0",
-        "dataset_version": "sha256_soroban_security_portal_v1.0",
+        "dataset_version": "sha256_soroban_unified_v2.0",
         "status": "trained_active",
         "classical_weights": {
             "file": "classical_mlp.pt",
