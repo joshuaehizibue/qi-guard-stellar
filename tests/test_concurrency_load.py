@@ -14,7 +14,10 @@ from app.core.database import get_db, Base
 from app.core.security import generate_api_key
 from app.models.project import Project, AccessTier
 from app.models.api_key import APIKey, KeyType
-from tests.conftest import test_engine, TestingSessionLocal
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from conftest import test_engine, TestingSessionLocal
 
 
 @pytest.mark.asyncio
