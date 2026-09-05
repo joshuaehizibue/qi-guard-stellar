@@ -1,11 +1,75 @@
+# ── Python ──────────────────────────────────────────────────────────────────
 venv/
 test_venv/
+.venv/
 __pycache__/
-*.pyc
-*.db
-.pytest_cache/
-.env
-node_modules/
-dist/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
 *.egg-info/
+dist/
+build/
+*.whl
+.eggs/
+pip-wheel-metadata/
+MANIFEST
 
+# ── Testing & coverage ───────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# ── Type checkers & linters ──────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+.pytype/
+
+# ── Node / dashboard ─────────────────────────────────────────────────────────
+node_modules/
+dashboard/dist/
+dashboard/.vite/
+sdks/js/dist/
+sdks/js/node_modules/
+*.tsbuildinfo
+
+# ── Environment & secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# ── Databases & local state ──────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Build artefacts ───────────────────────────────────────────────────────────
+*.so
+*.dylib
+*.dll
+target/               # Rust / Cargo build output
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Docs / misc ───────────────────────────────────────────────────────────────
+*.docx
+prd_full_text.txt
+docs/reports/*.json
