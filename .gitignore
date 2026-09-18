@@ -75,3 +75,7 @@ Thumbs.db
 *.docx
 prd_full_text.txt
 docs/reports/*.json
+SPRINT_*.md
+docs/STELLA_LANDING_PAGE_PRD.md
+docs/STELLA*
+
